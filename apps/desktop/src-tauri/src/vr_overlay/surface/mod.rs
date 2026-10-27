@@ -1627,13 +1627,16 @@ fn create_host(app: &AppHandle, surface: SurfaceId, epoch: u32) -> Result<(), St
             let data_directory = host_app.path().app_local_data_dir()
                 .map_err(|e| e.to_string())?
                 .join("vr-surfaces");
+            // skip_taskbar calls ITaskbarList::DeleteTab. Windows Graphics Capture
+            // then rejects the HWND with E_INVALIDARG (0x80070057), even when the
+            // window is shown. It must stay eligible for Alt-Tab; the position below
+            // keeps the host off-screen.
             let window = WebviewWindowBuilder::new(&host_app, surface.label(), WebviewUrl::App(url.into()))
                 .title("VRCS VR surface")
                 .decorations(false)
                 .shadow(false)
                 .transparent(true)
                 .resizable(false)
-                .skip_taskbar(true)
                 .focused(false)
                 .focusable(false)
                 .visible(false)
